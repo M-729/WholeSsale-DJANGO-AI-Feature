@@ -104,6 +104,7 @@ INSTALLED_APPS = [
     "apps.purchases",
     "apps.payments",
     "apps.reports",
+    "apps.ai_summary",
 ]
 
 MIDDLEWARE = [
@@ -315,6 +316,29 @@ STRIPE_RETURN_ORIGIN = env("STRIPE_RETURN_ORIGIN", "http://127.0.0.1:8000").rstr
 # A checkout link should not stay payable forever. Stripe's own limit is 24
 # hours and its minimum is 30 minutes.
 STRIPE_SESSION_MINUTES = env_int("STRIPE_SESSION_MINUTES", 720)
+
+# ---------------------------------------------------------------------------
+# AI Financial Summary (apps.ai_summary).
+#
+# Off unless a key is present, same as Stripe above: an installation that never
+# sets GROQ_API_KEY still shows every report exactly as it does today, just
+# without an AI-written explanation on top of the figures.
+#
+# The provider is Groq (an OpenAI-compatible Chat Completions API) rather than
+# OpenAI itself — see apps/ai_summary/ai_gateway.py for the one place that
+# distinction actually matters.
+# ---------------------------------------------------------------------------
+GROQ_API_KEY = env("GROQ_API_KEY")
+# A short, already-aggregated summary does not need a large model. Kept
+# configurable so a cheaper or newer model can be swapped in without a
+# code change.
+AI_SUMMARY_MODEL = env("AI_SUMMARY_MODEL", "openai/gpt-oss-20b")
+# A fixed one-hour window per user (apps/ai_summary/views.py), enforced with
+# the same cache used for the dashboard above rather than a new dependency.
+AI_SUMMARY_RATE_LIMIT_PER_HOUR = env_int("AI_SUMMARY_RATE_LIMIT_PER_HOUR", 5)
+# How long an identical request (same user, dates and payload) reuses the
+# stored result instead of spending a second AI call on unchanged figures.
+AI_SUMMARY_DEDUP_WINDOW_SECONDS = env_int("AI_SUMMARY_DEDUP_WINDOW_SECONDS", 600)
 
 # ---------------------------------------------------------------------------
 # Locale (CFG-001, NFR-018). The company row carries the business timezone and

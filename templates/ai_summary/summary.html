@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% load ui %}
+{% comment %}
+The AI Financial Summary. A normal report page, not a chatbot: pick a period,
+press one button, read a short explanation of figures that are computed and
+shown here regardless of whether the AI call ever succeeds.
+
+Rendered by two different views depending on how the request went —
+AISummaryPageView (GET, always) and GenerateAISummaryView (POST, only when it
+has something other than a redirect to say) — which is why every variable here
+is guarded rather than assumed present.
+{% endcomment %}
+
+{% block actions %}
+  {% if figures and perms.core.export_data %}
+    {# Export the financial summary and AI insights for the selected period. #}
+    <a href="?date_from={{ date_from|date:'Y-m-d' }}&date_to={{ date_to|date:'Y-m-d' }}&export=csv"
+       class="btn-ghost">
+      <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>
+      <span>Export CSV</span>
+    </a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+  <form method="get" action="{% url 'ai_summary:summary' %}" class="card card-pad print:hidden">
+    {% include "core/_form_errors.html" with form=form %}
+    <div class="flex flex-wrap items-end gap-3">
+      {% include "core/_form_field.html" with field=form.date_from %}
+      {% include "core/_form_field.html" with field=form.date_to %}
+      <button type="submit" class="btn-ghost">Update period</button>
+    </div>
+  </form>
+
+  {% if error %}
+    <div class="alert-error" role="alert">
+      <svg class="icon shrink-0" aria-hidden="true"><use href="#i-alert"></use></svg>
+      <p class="alert-body text-danger-strong">{{ error }}</p>
+    </div>
+  {% endif %}
+
+  {% if period %}
+    <div class="card card-pad">
+      <div class="flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <p class="eyebrow">Period</p>
+          <p class="text-lg font-semibold">
+            {{ date_from|date:"F j, Y" }} – {{ date_to|date:"F j, Y" }}
+          </p>
+          <p class="mt-1 text-xs text-muted-fg">All amounts in {{ currency }}</p>
+        </div>
+        <form method="post" action="{% url 'ai_summary:generate' %}">
+          {% csrf_token %}
+          <input type="hidden" name="date_from" value="{{ period.from }}">
+          <input type="hidden" name="date_to" value="{{ period.to }}">
+          <button type="submit" class="btn-primary" data-busy-label="Generating…">Generate AI Financial Summary</button>
+        </form>
+      </div>
+    </div>
+  {% endif %}
+
+  {% if result %}
+    <div class="card card-pad mx-auto max-w-3xl">
+      <p class="eyebrow">Financial Summary</p>
+      {# Auto-escaped: the AI's text is data, never markup. #}
+      <p class="mt-2 text-base leading-7">{{ result.summary }}</p>
+
+      {% if result.key_points %}
+        <h3 class="mt-6 text-xs font-bold uppercase tracking-wide text-muted-fg">Key Points</h3>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm">
+          {% for point in result.key_points %}<li>{{ point }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if result.warnings %}
+        <h3 class="mt-6 text-xs font-bold uppercase tracking-wide text-amber-800">Warnings</h3>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-900">
+          {% for warning in result.warnings %}<li>{{ warning }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+
+      {% if result.recommendations %}
+        <h3 class="mt-6 text-xs font-bold uppercase tracking-wide text-muted-fg">Recommendations</h3>
+        <ul class="mt-2 list-disc space-y-1 pl-5 text-sm">
+          {% for item in result.recommendations %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+      {% endif %}
+
+      <p class="mt-6 border-t border-line pt-3 text-xs text-muted-fg">
+        Written by an AI model from the figures below. It only explains them — it
+        never changes them, and every number it mentions should trace back to
+        the table below.
+      </p>
+    </div>
+  {% elif period and not error %}
+    <div class="alert-info" role="status">
+      <p class="alert-body">
+        No AI summary yet for this period. Select “Generate AI Financial Summary” above.
+      </p>
+    </div>
+  {% endif %}
+
+  {% if figures %}
+    <div class="card card-pad mx-auto max-w-2xl">
+      <p class="eyebrow">Trusted financial figures</p>
+      <h2 class="display mt-1 text-lg">What the AI was given</h2>
+      <p class="mt-1 text-xs text-muted-fg">
+        Calculated directly from the accounting records — the AI never produces
+        or adjusts any figure on this page.
+      </p>
+      <table class="mt-4 w-full text-sm">
+        <caption class="sr-only">
+          Financial figures for {{ period.from }} to {{ period.to }}
+        </caption>
+        <tbody>
+          {% for row in figures %}
+            <tr class="border-t border-line">
+              <td class="px-4 py-1.5">{{ row.label }}</td>
+              <td class="px-4 py-1.5 text-right tabular-nums">
+                {% if row.kind == "percent" %}
+                  {% if row.value is not None %}{{ row.value|floatformat:1 }}%{% else %}—{% endif %}
+                {% else %}
+                  {{ row.value|money:currency }}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% if excluded_currency_notes %}
+        <div class="mt-4 space-y-1 border-t border-line pt-3 text-xs text-muted-fg">
+          {% for note in excluded_currency_notes %}<p>{{ note }}</p>{% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

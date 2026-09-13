@@ -17,6 +17,11 @@ Pillow==12.3.*
 # payments by hand - the Stripe screens report themselves unavailable instead of
 # taking the site down over a feature most deployments will not use.
 stripe==13.2.*
+# A plain HTTP client for Groq's OpenAI-compatible Chat Completions API, used
+# only by apps/ai_summary/ai_gateway.py. The feature itself stays off without
+# GROQ_API_KEY set, but the small, dependency-free `requests` library is
+# installed unconditionally rather than lazily, the same way Pillow is.
+requests==2.34.*
 
 # --- serving -------------------------------------------------------------
 # The WSGI server. `manage.py runserver` is a development tool and says so in

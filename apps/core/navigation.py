@@ -228,6 +228,13 @@ SECTIONS: tuple[Section, ...] = (
                         permission="core.view_financial_reports",
                         exact=("balance_sheet",),
                     ),
+                    Item(
+                        "AI Financial Summary",
+                        "ai_summary:summary",
+                        "nav-reports",
+                        permission="core.view_financial_reports",
+                        app="ai_summary",
+                    ),
                 ),
             ),
             Subgroup(

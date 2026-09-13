@@ -15,6 +15,7 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DetailView, UpdateView
 
+from apps.ai_summary.models import AISummaryRequest, AISummaryStatus
 from apps.core import audit, period_close
 from apps.core.forms import (
     AccountForm,
@@ -129,6 +130,16 @@ def dashboard(request):
         "page_title": f"Good day, {request.user.full_name or request.user.username}.",
         "page_subtitle": "Configuration is in place. Operational modules arrive with the other slices.",
         **overview,
+        # Per-user and cheap (one indexed query), so it is read fresh on every
+        # request rather than folded into the shared cache above — unlike the
+        # rest of this dashboard, whose figures are the same for anyone
+        # looking at them. Never triggers an AI call: this only ever reads
+        # rows a previous, explicit "Generate" click already created.
+        "latest_ai_summary": AISummaryRequest.objects.filter(
+            user=request.user, status=AISummaryStatus.SUCCESS
+        )
+        .order_by("-created_at")
+        .first(),
     }
     return render(request, "core/dashboard.html", context)
 
