@@ -22,7 +22,7 @@ stripe==13.2.*
 # The WSGI server. `manage.py runserver` is a development tool and says so in
 # its own startup banner; it is single-threaded and does not belong in front of
 # real users.
-gunicorn==23.0.*
+gunicorn==26.2.*
 # Lets the application serve its own static files with correct cache headers,
 # so a deployment needs no second process to be correct. Harmless behind nginx
 # or a CDN, which will simply answer first.
