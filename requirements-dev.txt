@@ -6,4 +6,4 @@
 
 # Formatting and linting. Configured in pyproject.toml so everyone's editor
 # agrees and diffs stay about behaviour, not whitespace.
-ruff==0.6.*
+ruff==0.16.*
