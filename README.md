@@ -166,7 +166,7 @@ schema_reference.sql    pg_dump of the built schema, for reference
 | Member | Apps | Focus |
 |---|---|---|
 | 1 | core, accounts, parties, catalog | Foundation, identity, master data, shared UI |
-| 2 | purchases, inventory | Purchasing and stock |
+| 2 | purchases, inventory | Purchasing and stock | AI feature in the updated version
 | 3 | sales | Sales cycle and customer returns |
 | 4 | payments, ledger, reports | Posting engine, money, financial statements |
 
