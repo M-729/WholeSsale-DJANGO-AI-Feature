@@ -16,7 +16,7 @@ Pillow==12.3.*
 # installation that has not run this file yet still boots and still posts
 # payments by hand - the Stripe screens report themselves unavailable instead of
 # taking the site down over a feature most deployments will not use.
-stripe==13.2.*
+stripe==15.6.*
 # A plain HTTP client for Groq's OpenAI-compatible Chat Completions API, used
 # only by apps/ai_summary/ai_gateway.py. The feature itself stays off without
 # GROQ_API_KEY set, but the small, dependency-free `requests` library is
