@@ -21,6 +21,21 @@
     <article class="surface p-6"><div class="flex items-center justify-between"><div><p class="eyebrow">Liquidity</p><h2 class="text-lg font-extrabold">Payment position</h2></div><a href="{% url 'payments:payment_list' %}" class="btn-ghost btn-sm">Open payments</a></div><div class="mt-7"><p class="text-xs font-semibold text-slate-500">Unallocated value</p><strong class="mt-1 block text-3xl tracking-tight">{{ payment_totals.unallocated|default:0|money:currency_code }}</strong><p class="mt-1 text-xs text-slate-500">Across {{ payment_totals.drafts }} draft payment{{ payment_totals.drafts|pluralize }}</p></div></article>
   </section>
   {% endwith %}
+  {% if perms.core.view_financial_reports %}
+  <section class="surface p-6">
+    <div class="flex flex-wrap items-center justify-between gap-4">
+      <div>
+        <p class="eyebrow">AI Financial Summary</p>
+        <h2 class="text-lg font-extrabold">Get a plain-language overview</h2>
+        <p class="mt-1 max-w-prose text-sm text-slate-500">Get a plain-language overview of your company's financial performance.</p>
+        {% if latest_ai_summary %}
+          <p class="mt-2 text-xs text-slate-500">Last generated {{ latest_ai_summary.created_at|date:"j M Y, H:i" }}.</p>
+        {% endif %}
+      </div>
+      <a href="{% url 'ai_summary:summary' %}" class="btn-primary whitespace-nowrap">View Financial Summary</a>
+    </div>
+  </section>
+  {% endif %}
   <section class="surface overflow-hidden"><div class="flex items-center justify-between p-5 pb-3 sm:p-6"><div><p class="eyebrow">Money movement</p><h2 class="text-lg font-extrabold">Recent payments & receipts</h2></div><a href="{% url 'payments:payment_list' %}" class="text-sm font-semibold text-brand-deep">View all →</a></div><div class="scroll-region" tabindex="0" role="region" aria-label="Recent payments and receipts"><table class="w-full text-sm"><caption class="sr-only">The ten most recent payments and receipts, newest first.</caption><thead><tr class="border-y border-line bg-slate-50/80 text-left text-[11px] uppercase tracking-wider text-slate-500"><th scope="col" class="px-6 py-3">Number</th><th scope="col" class="px-4 py-3">Party</th><th scope="col" class="px-4 py-3">Method</th><th scope="col" class="px-4 py-3">Status</th><th scope="col" class="px-6 py-3 text-right">Amount</th></tr></thead><tbody>{% for payment in recent_payments %}<tr class="border-b border-line hover:bg-slate-50"><td class="px-6 py-4"><a class="font-bold" href="{{ payment.get_absolute_url }}">{{ payment.number }}</a></td><td class="px-4 py-4 text-slate-600">{{ payment.party }}</td><td class="px-4 py-4 text-slate-500">{{ payment.method }}</td><td class="px-4 py-4">{% include "core/_status_badge.html" with value=payment.status display=payment.get_status_display %}</td><td class="px-6 py-4 text-right font-bold">{{ payment.amount_txn|money:payment.currency_id }}</td></tr>{% empty %}<tr><td colspan="5" class="px-6 py-14 text-center text-slate-500">No payment activity yet. Create the first receipt or vendor payment.</td></tr>{% endfor %}</tbody></table></div></section>
 </div>
 {% endblock %}
