@@ -8,7 +8,7 @@
 # dependency to install, learn, or debug precedence rules for.
 
 Django==5.2.*
-psycopg[binary]==3.2.*
+psycopg[binary]==3.3.*
 # Required at runtime by Company.logo (ImageField), including production.
 Pillow==12.3.*
 # Only reached when Stripe is switched on (STRIPE_SECRET_KEY set). The import is
